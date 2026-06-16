@@ -3,7 +3,6 @@ import env from "./env.js";
 
 const connectDB = async () => {
   try {
-    console.log("URI =>", env.MONGO_URI);
 
     await mongoose.connect(env.MONGO_URI);
 
