@@ -1,6 +1,7 @@
 import app from "./app.js";
 import connectDB from "./config/db.js";
 import env from "./config/env.js";
+// import createAdmin from "./database/seed.js";
 
 const PORT = env.PORT || 5000;
 
@@ -13,6 +14,7 @@ const PORT = env.PORT || 5000;
 const startServer = async () => {
   try {
     await connectDB();
+// await createAdmin();
 
     // Start Express server
     app.listen(PORT, () => {

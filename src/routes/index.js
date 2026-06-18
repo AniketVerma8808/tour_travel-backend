@@ -5,6 +5,8 @@ import inquiryRoutes from "../modules/inquiry/inquiry.routes.js";
 import reviewRoutes from "../modules/review/review.routes.js";
 import bookingRoutes from "../modules/booking/booking.routes.js";
 import packageRoutes from "../modules/package/package.routes.js";
+import dashboardRoutes from "../modules/dashboard/dashboard.routes.js";
+import settingRoutes from "../modules/setting/setting.routes.js";
 
 const router = express.Router();
 
@@ -15,4 +17,7 @@ router.use("/inquiry", inquiryRoutes);
 router.use("/review", reviewRoutes);
 router.use("/booking", bookingRoutes);
 router.use("/packages", packageRoutes);
+router.use("/dashboard", dashboardRoutes);
+router.use("/settings", settingRoutes);
+
 export default router;

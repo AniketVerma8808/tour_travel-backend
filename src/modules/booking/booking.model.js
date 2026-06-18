@@ -61,12 +61,29 @@ const bookingSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "TravelPackage",
       default: null,
+      index: true,
     },
 
-    packageName: {
-      type: String,
-      trim: true,
-      default: "",
+    packageSnapshot: {
+      title: {
+        type: String,
+        default: "",
+      },
+
+      price: {
+        type: Number,
+        default: null,
+      },
+
+      oldPrice: {
+        type: Number,
+        default: null,
+      },
+
+      vehicle: {
+        type: String,
+        default: "",
+      },
     },
 
     numberOfPassengers: {
@@ -105,10 +122,13 @@ const bookingSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
+
+        updatedBy: {
+          type: String,
+          default: "System",
+        },
       },
     ],
-
-
   },
   {
     timestamps: true,

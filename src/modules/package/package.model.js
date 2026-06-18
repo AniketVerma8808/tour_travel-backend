@@ -15,6 +15,7 @@ const packageSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
 
     category: {
@@ -61,16 +62,25 @@ const packageSchema = new mongoose.Schema(
     oldPrice: {
       type: Number,
       default: null,
+      min: 0,
     },
 
     price: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     description: {
       type: String,
       trim: true,
+      default: "",
+    },
+
+    shortDescription: {
+      type: String,
+      trim: true,
+      maxlength: 250,
       default: "",
     },
 
@@ -87,6 +97,11 @@ const packageSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+
+    displayOrder: {
+      type: Number,
+      default: 0,
+    },
 
     isFeatured: {
       type: Boolean,
@@ -110,6 +125,11 @@ const packageSchema = new mongoose.Schema(
 packageSchema.index({
   status: 1,
   createdAt: -1,
+});
+
+packageSchema.index({
+  category: 1,
+  status: 1,
 });
 
 const TravelPackage = mongoose.model(

@@ -18,11 +18,11 @@ const router = express.Router();
 // Active Packages
 router.get("/", getActivePackages);
 
-// Single Package By Slug
-router.get("/:slug", getPackageBySlug);
-
 // All Packages
 router.get("/all", protectAdmin, getAllPackages);
+
+// Single Package By Slug
+router.get("/:slug", getPackageBySlug);
 
 // Create Package
 router.post("/create", protectAdmin, validatePackage, createPackage);

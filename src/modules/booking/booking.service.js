@@ -1,91 +1,125 @@
 import Booking from "./booking.model.js";
-import {
-  generateBookingNumber,
-} from "./booking.helper.js";
+import TravelPackage from "../package/package.model.js";
+import { generateBookingNumber } from "./booking.helper.js";
 
+/**
+ * Create Booking
+ */
 const createBooking = async (data) => {
-  const phone =
-    data.phone?.trim();
+  const phone = data.phone?.trim();
+  const pickup = data.pickup?.trim();
+  const drop = data.drop?.trim();
 
-  const pickup =
-    data.pickup?.trim();
+  const startDate = new Date(data.travelDate);
+  startDate.setHours(0, 0, 0, 0);
 
-  const drop =
-    data.drop?.trim();
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 1);
 
-  const duplicateBooking =
-    await Booking.findOne({
-      phone,
-      travelDate:
-        new Date(
-          data.travelDate
-        ),
-      pickup,
-      drop,
-    });
+  const duplicateBooking = await Booking.findOne({
+    phone,
+    pickup,
+    drop,
+    travelDate: {
+      $gte: startDate,
+      $lt: endDate,
+    },
+    status: {
+      $ne: "cancelled",
+    },
+  });
 
   if (duplicateBooking) {
     return {
       success: false,
       statusCode: 409,
-      message:
-        "Similar booking already exists",
+      message: "Similar booking already exists",
+    };
+  }
+
+  let vehicle = data.vehicle?.trim() || "";
+  let packageId = null;
+  let packageSnapshot = {
+    title: "",
+    price: null,
+    oldPrice: null,
+    vehicle: "",
+  };
+
+  if (data.packageId) {
+    const travelPackage =
+      await TravelPackage.findOne({
+        _id: data.packageId,
+        status: "active",
+      });
+
+    if (!travelPackage) {
+      return {
+        success: false,
+        statusCode: 404,
+        message: "Package not found",
+      };
+    }
+
+    packageId = travelPackage._id;
+
+    vehicle =
+      travelPackage.vehicle || vehicle;
+
+    packageSnapshot = {
+      title: travelPackage.title,
+      price: travelPackage.price,
+      oldPrice: travelPackage.oldPrice,
+      vehicle: travelPackage.vehicle,
     };
   }
 
   const bookingNumber =
     await generateBookingNumber();
 
-  const booking =
-    await Booking.create({
-      bookingNumber,
+  const booking = await Booking.create({
+    bookingNumber,
 
-      name:
-        data.name?.trim(),
+    name: data.name?.trim(),
 
-      phone,
+    phone,
 
-      email:
-        data.email
-          ?.trim()
-          ?.toLowerCase() ||
-        null,
+    email:
+      data.email?.trim()?.toLowerCase() ||
+      null,
 
-      travelDate:
-        data.travelDate,
+    travelDate: data.travelDate,
 
-      pickup,
+    pickup,
 
-      drop,
+    drop,
 
-      vehicle:
-        data.vehicle?.trim() ||
-        "",
+    vehicle,
 
-      packageName:
-        data.packageName?.trim() ||
-        "",
+    packageId,
 
-      numberOfPassengers:
-        data.numberOfPassengers ||
-        null,
+    packageSnapshot,
 
-      customerMessage:
-        data.customerMessage?.trim() ||
-        "",
+    numberOfPassengers:
+      data.numberOfPassengers
+        ? Number(data.numberOfPassengers)
+        : null,
 
-      statusHistory: [
-        {
-          status: "pending",
-        },
-      ],
-    });
+    customerMessage:
+      data.customerMessage?.trim() || "",
+
+    statusHistory: [
+      {
+        status: "pending",
+        updatedBy: "System",
+      },
+    ],
+  });
 
   return {
     success: true,
     statusCode: 201,
-    message:
-      "Booking submitted successfully",
+    message: "Booking submitted successfully",
     booking: {
       id: booking._id,
       bookingNumber:
@@ -94,143 +128,161 @@ const createBooking = async (data) => {
   };
 };
 
-const getAllBookings =
-  async ({
-    page = 1,
-    limit = 20,
-    search = "",
-    status = "",
-  }) => {
-    const query = {};
+/**
+ * Get All Bookings
+ */
+const getAllBookings = async ({
+  page = 1,
+  limit = 20,
+  search = "",
+  status = "",
+}) => {
+  page = Number(page);
+  limit = Number(limit);
 
-    if (status) {
-      query.status = status;
-    }
+  const query = {};
 
-    if (search) {
-      query.$or = [
-        {
-          bookingNumber: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          name: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          phone: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-      ];
-    }
+  if (status) {
+    query.status = status;
+  }
 
-    const skip =
-      (page - 1) * limit;
-
-    const [
-      bookings,
-      total,
-    ] =
-      await Promise.all([
-        Booking.find(query)
-          .sort({
-            createdAt: -1,
-          })
-          .skip(skip)
-          .limit(limit)
-          .lean(),
-
-        Booking.countDocuments(
-          query
-        ),
-      ]);
-
-    return {
-      success: true,
-      statusCode: 200,
-      page,
-      limit,
-      total,
-      totalPages:
-        Math.ceil(
-          total / limit
-        ),
-      bookings,
-    };
-  };
-
-const updateBookingStatus =
-  async (
-    id,
-    status
-  ) => {
-    const allowedStatuses = [
-      "pending",
-      "confirmed",
-      "completed",
-      "cancelled",
-    ];
-
-    if (
-      !allowedStatuses.includes(
-        status
-      )
-    ) {
-      return {
-        success: false,
-        statusCode: 400,
-        message:
-          "Invalid status",
-      };
-    }
-
-    const booking =
-      await Booking.findById(id);
-
-    if (!booking) {
-      return {
-        success: false,
-        statusCode: 404,
-        message:
-          "Booking not found",
-      };
-    }
-
-    if (
-      booking.status === status
-    ) {
-      return {
-        success: false,
-        statusCode: 400,
-        message:
-          "Booking already in this status",
-      };
-    }
-
-    booking.status =
-      status;
-
-    booking.statusHistory.push(
+  if (search) {
+    query.$or = [
       {
-        status,
-      }
-    );
+        bookingNumber: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        name: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        phone: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        pickup: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        drop: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+    ];
+  }
 
-    await booking.save();
+  const skip = (page - 1) * limit;
 
-    return {
-      success: true,
-      statusCode: 200,
-      message:
-        "Booking status updated",
-    };
+  const [bookings, total] =
+    await Promise.all([
+      Booking.find(query)
+        .populate(
+          "packageId",
+          "title price oldPrice vehicle category"
+        )
+        .sort({
+          createdAt: -1,
+        })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+
+      Booking.countDocuments(query),
+    ]);
+
+  return {
+    success: true,
+    statusCode: 200,
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(
+      total / limit
+    ),
+    bookings,
   };
+};
+
+/**
+ * Update Booking Status
+ */
+const updateBookingStatus = async (
+  id,
+  status,
+  updatedBy = "Admin"
+) => {
+  const allowedStatuses = [
+    "pending",
+    "confirmed",
+    "completed",
+    "cancelled",
+  ];
+
+  if (
+    !allowedStatuses.includes(status)
+  ) {
+    return {
+      success: false,
+      statusCode: 400,
+      message: "Invalid status",
+    };
+  }
+
+  const booking =
+    await Booking.findById(id);
+
+  if (!booking) {
+    return {
+      success: false,
+      statusCode: 404,
+      message: "Booking not found",
+    };
+  }
+
+  if (
+    booking.status === status
+  ) {
+    return {
+      success: false,
+      statusCode: 400,
+      message:
+        "Booking already in this status",
+    };
+  }
+
+  booking.status = status;
+
+  booking.statusHistory.push({
+    status,
+    updatedBy,
+  });
+
+  await booking.save();
+
+  return {
+    success: true,
+    statusCode: 200,
+    message:
+      "Booking status updated successfully",
+    booking: {
+      id: booking._id,
+      bookingNumber:
+        booking.bookingNumber,
+      status:
+        booking.status,
+    },
+  };
+};
 
 export default {
   createBooking,
