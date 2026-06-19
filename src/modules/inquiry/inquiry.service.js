@@ -22,10 +22,8 @@ const createInquiry = async (data) => {
   const inquiry = await Inquiry.create({
     name: data.name?.trim(),
     phone,
-    email:
-      data.email?.trim().toLowerCase() || null,
-    message:
-      data.message?.trim() || "",
+    email: data.email?.trim().toLowerCase() || null,
+    message: data.message?.trim() || "",
   });
 
   return {
@@ -37,8 +35,7 @@ const createInquiry = async (data) => {
 };
 
 const getAllInquiries = async () => {
-  const inquiries = await Inquiry.find()
-    .sort({ createdAt: -1 });
+  const inquiries = await Inquiry.find().sort({ createdAt: -1 });
 
   return {
     success: true,
@@ -48,7 +45,42 @@ const getAllInquiries = async () => {
   };
 };
 
+const updateInquiryStatus = async (id, status) => {
+  const allowedStatus = ["pending", "contacted", "completed", "cancelled"];
+
+
+  if (!allowedStatus.includes(status)) {
+    return {
+      success: false,
+      statusCode: 400,
+      message: "Invalid status",
+    };
+  }
+
+  const inquiry = await Inquiry.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true }
+  );
+
+  if (!inquiry) {
+    return {
+      success: false,
+      statusCode: 404,
+      message: "Inquiry not found",
+    };
+  }
+
+  return {
+    success: true,
+    statusCode: 200,
+    message: "Status updated successfully",
+    inquiry,
+  };
+};
+
 export default {
   createInquiry,
   getAllInquiries,
+  updateInquiryStatus,
 };
