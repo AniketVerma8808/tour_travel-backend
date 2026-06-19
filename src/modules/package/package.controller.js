@@ -98,6 +98,25 @@ export const updatePackageStatus = async (req, res, next) => {
   }
 };
 
+export const getPackageById = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const result =
+      await packageService.getPackageById(
+        req.params.id
+      );
+
+    return res
+      .status(result.statusCode)
+      .json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 /**
  * Delete Package
  */

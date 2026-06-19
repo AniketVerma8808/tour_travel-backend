@@ -52,7 +52,7 @@ const createPackage = async (data) => {
 
       oldPrice:
         data.oldPrice !== undefined &&
-        data.oldPrice !== null
+          data.oldPrice !== null
           ? Number(data.oldPrice)
           : null,
 
@@ -243,7 +243,7 @@ const updatePackage =
     if (
       data.title &&
       data.title.trim() !==
-        travelPackage.title
+      travelPackage.title
     ) {
       const slug =
         generateSlug(data.title);
@@ -327,11 +327,11 @@ const updatePackage =
     ) {
       travelPackage.oldPrice =
         data.oldPrice === null ||
-        data.oldPrice === ""
+          data.oldPrice === ""
           ? null
           : Number(
-              data.oldPrice
-            );
+            data.oldPrice
+          );
     }
 
     if (
@@ -511,11 +511,33 @@ const deletePackage =
     };
   };
 
+
+const getPackageById = async (id) => {
+  const travelPackage =
+    await TravelPackage.findById(id).lean();
+
+  if (!travelPackage) {
+    return {
+      success: false,
+      statusCode: 404,
+      message: "Package not found",
+    };
+  }
+
+  return {
+    success: true,
+    statusCode: 200,
+    package: travelPackage,
+  };
+};
+
+
 export default {
   createPackage,
   getActivePackages,
   getAllPackages,
   getPackageBySlug,
+  getPackageById,
   updatePackage,
   updatePackageStatus,
   deletePackage,

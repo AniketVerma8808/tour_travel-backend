@@ -1,34 +1,39 @@
 import express from "express";
-
 import {
-    createPackage,
-    getActivePackages,
-    getAllPackages,
-    getPackageBySlug,
-    updatePackage,
-    updatePackageStatus,
-    deletePackage,
+  createPackage,
+  getActivePackages,
+  getAllPackages,
+  getPackageBySlug,
+  getPackageById,
+  updatePackage,
+  updatePackageStatus,
+  deletePackage,
 } from "./package.controller.js";
-
-import { validatePackage } from "./package.validation.js";
-import { protectAdmin, } from "../../middleware/auth.middleware.js";
+import {
+  validatePackage,
+  validatePackageUpdate,
+} from "./package.validation.js";
+import { protectAdmin } from "../../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Active Packages
+// Public Packages
 router.get("/", getActivePackages);
 
-// All Packages
+// Admin Packages
 router.get("/all", protectAdmin, getAllPackages);
 
-// Single Package By Slug
+// Get Package By ID (Admin Edit)
+router.get("/details/:id", protectAdmin, getPackageById);
+
+// Get Package By Slug (Public)
 router.get("/:slug", getPackageBySlug);
 
 // Create Package
 router.post("/create", protectAdmin, validatePackage, createPackage);
 
 // Update Package
-router.put("/:id", protectAdmin, validatePackage, updatePackage);
+router.put("/:id", protectAdmin, validatePackageUpdate, updatePackage);
 
 // Change Status
 router.patch("/:id/status", protectAdmin, updatePackageStatus);
