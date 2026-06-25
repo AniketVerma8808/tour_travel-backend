@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -33,6 +34,9 @@ app.use(morgan("dev"));
 // Rate limiting
 app.use(rateLimiter);
 
+
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 /**
  * =====================
  * BASE ROUTE
@@ -45,6 +49,7 @@ app.get("/", (req, res) => {
     message: "Travel Backend API Running",
   });
 });
+
 
 /**
  * =====================
