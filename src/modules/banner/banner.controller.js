@@ -5,15 +5,13 @@ import * as bannerService from "./banner.service.js";
 export const createBanner = async (req, res) => {
     try {
         const { order, isActive } = req.body;
-
         if (!req.file) {
             return res.status(400).json({
                 success: false,
                 message: "Image is required",
             });
         }
-
-        const imageUrl = `${process.env.CLIENT_URL}/uploads/${req.file.filename}`;
+        const imageUrl = `${process.env.SERVER_URL}/uploads/banner/${req.file.filename}`;
 
         const banner = await bannerService.createBannerService({
             image: imageUrl,

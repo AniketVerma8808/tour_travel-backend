@@ -3,6 +3,7 @@ import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import fs from "fs";
 
 import corsConfig from "./config/cors.js";
 import { rateLimiter } from "./config/rateLimit.js";
@@ -19,8 +20,11 @@ const app = express();
  */
 
 // Security headers
-app.use(helmet());
-
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 // CORS config
 app.use(cors(corsConfig));
 
@@ -50,6 +54,17 @@ app.get("/", (req, res) => {
   });
 });
 
+
+app.get("/test-upload", (req, res) => {
+  const dir = path.join(process.cwd(), "uploads", "banner");
+
+  res.json({
+    cwd: process.cwd(),
+    uploadDir: dir,
+    exists: fs.existsSync(dir),
+    files: fs.existsSync(dir) ? fs.readdirSync(dir) : [],
+  });
+});
 
 /**
  * =====================
