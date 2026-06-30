@@ -35,6 +35,12 @@ const createPackage = async (data) => {
         data.vehicle?.trim() ||
         "Innova Crysta",
 
+      startingLocation:
+        data.startingLocation?.trim() || "Varanasi",
+
+      destinationLocation:
+        data.destinationLocation?.trim() || "",
+
       duration:
         data.duration?.trim() || "",
 
@@ -103,26 +109,24 @@ const createPackage = async (data) => {
 /**
  * Public Packages
  */
-const getActivePackages =
-  async () => {
-    const packages =
-      await TravelPackage.find({
-        status: "active",
-      })
-        .sort({
-          displayOrder: 1,
-          isFeatured: -1,
-          createdAt: -1,
-        })
-        .lean();
+const getActivePackages = async () => {
+  const packages = await TravelPackage.find({
+    status: "active",
+  })
+    .sort({
+      displayOrder: 1,
+      isFeatured: -1,
+      createdAt: -1,
+    })
+    .lean();
 
-    return {
-      success: true,
-      statusCode: 200,
-      count: packages.length,
-      packages,
-    };
+  return {
+    success: true,
+    statusCode: 200,
+    count: packages.length,
+    packages,
   };
+};
 
 /**
  * Admin Packages
@@ -220,188 +224,130 @@ const getPackageBySlug =
     };
   };
 
-
 /**
  * Update Package
  */
-const updatePackage =
-  async (id, data) => {
-    const travelPackage =
-      await TravelPackage.findById(
-        id
-      );
+const updatePackage = async (id, data) => {
+  const travelPackage = await TravelPackage.findById(id);
 
-    if (!travelPackage) {
+  if (!travelPackage) {
+    return {
+      success: false,
+      statusCode: 404,
+      message: "Package not found",
+    };
+  }
+
+  // Update title & slug
+  if (
+    data.title &&
+    data.title.trim() !== travelPackage.title
+  ) {
+    const slug = generateSlug(data.title);
+
+    const existingPackage =
+      await TravelPackage.findOne({
+        slug,
+        _id: { $ne: id },
+      });
+
+    if (existingPackage) {
       return {
         success: false,
-        statusCode: 404,
-        message:
-          "Package not found",
+        statusCode: 409,
+        message: "Package title already exists",
       };
     }
 
-    if (
-      data.title &&
-      data.title.trim() !==
-      travelPackage.title
-    ) {
-      const slug =
-        generateSlug(data.title);
+    travelPackage.title = data.title.trim();
+    travelPackage.slug = slug;
+  }
 
-      const existingPackage =
-        await TravelPackage.findOne({
-          slug,
-          _id: {
-            $ne: id,
-          },
-        });
+  // Basic Information
+  if (data.category !== undefined)
+    travelPackage.category = data.category;
 
-      if (existingPackage) {
-        return {
-          success: false,
-          statusCode: 409,
-          message:
-            "Package title already exists",
-        };
-      }
+  if (data.image !== undefined)
+    travelPackage.image = data.image;
 
-      travelPackage.title =
-        data.title.trim();
+  if (data.vehicle !== undefined)
+    travelPackage.vehicle = data.vehicle;
 
-      travelPackage.slug = slug;
-    }
+  if (data.startingLocation !== undefined)
+    travelPackage.startingLocation =
+      data.startingLocation;
 
-    if (
-      data.category !==
-      undefined
-    )
-      travelPackage.category =
-        data.category;
+  if (data.destinationLocation !== undefined)
+    travelPackage.destinationLocation =
+      data.destinationLocation;
 
-    if (
-      data.image !== undefined
-    )
-      travelPackage.image =
-        data.image;
+  // Trip Details
+  if (data.duration !== undefined)
+    travelPackage.duration = data.duration;
 
-    if (
-      data.vehicle !==
-      undefined
-    )
-      travelPackage.vehicle =
-        data.vehicle;
+  if (data.distance !== undefined)
+    travelPackage.distance = Number(data.distance);
 
-    if (
-      data.duration !==
-      undefined
-    )
-      travelPackage.duration =
-        data.duration;
+  if (data.baseKm !== undefined)
+    travelPackage.baseKm = Number(data.baseKm);
 
-    if (
-      data.distance !==
-      undefined
-    )
-      travelPackage.distance =
-        Number(data.distance);
+  if (data.extraKmRate !== undefined)
+    travelPackage.extraKmRate = Number(
+      data.extraKmRate
+    );
 
-    if (
-      data.baseKm !==
-      undefined
-    )
-      travelPackage.baseKm =
-        Number(data.baseKm);
+  // Pricing
+  if (data.price !== undefined)
+    travelPackage.price = Number(data.price);
 
-    if (
-      data.extraKmRate !==
-      undefined
-    )
-      travelPackage.extraKmRate =
-        Number(
-          data.extraKmRate
-        );
+  if (data.oldPrice !== undefined) {
+    travelPackage.oldPrice =
+      data.oldPrice === null ||
+        data.oldPrice === ""
+        ? null
+        : Number(data.oldPrice);
+  }
 
-    if (
-      data.oldPrice !==
-      undefined
-    ) {
-      travelPackage.oldPrice =
-        data.oldPrice === null ||
-          data.oldPrice === ""
-          ? null
-          : Number(
-            data.oldPrice
-          );
-    }
+  // Description
+  if (data.description !== undefined)
+    travelPackage.description =
+      data.description;
 
-    if (
-      data.price !==
-      undefined
-    )
-      travelPackage.price =
-        Number(data.price);
+  if (data.shortDescription !== undefined)
+    travelPackage.shortDescription =
+      data.shortDescription;
 
-    if (
-      data.description !==
-      undefined
-    )
-      travelPackage.description =
-        data.description;
+  // Package Details
+  if (data.inclusions !== undefined)
+    travelPackage.inclusions =
+      data.inclusions;
 
-    if (
-      data.shortDescription !==
-      undefined
-    )
-      travelPackage.shortDescription =
-        data.shortDescription;
+  if (data.exclusions !== undefined)
+    travelPackage.exclusions =
+      data.exclusions;
 
-    if (
-      data.inclusions !==
-      undefined
-    )
-      travelPackage.inclusions =
-        data.inclusions;
+  // Display Settings
+  if (data.displayOrder !== undefined)
+    travelPackage.displayOrder = Number(
+      data.displayOrder
+    );
 
-    if (
-      data.exclusions !==
-      undefined
-    )
-      travelPackage.exclusions =
-        data.exclusions;
+  if (data.isFeatured !== undefined)
+    travelPackage.isFeatured =
+      data.isFeatured;
 
-    if (
-      data.displayOrder !==
-      undefined
-    )
-      travelPackage.displayOrder =
-        Number(
-          data.displayOrder
-        );
+  if (data.status !== undefined)
+    travelPackage.status = data.status;
 
-    if (
-      data.isFeatured !==
-      undefined
-    )
-      travelPackage.isFeatured =
-        data.isFeatured;
+  await travelPackage.save();
 
-    if (
-      data.status !==
-      undefined
-    )
-      travelPackage.status =
-        data.status;
-
-    await travelPackage.save();
-
-    return {
-      success: true,
-      statusCode: 200,
-      message:
-        "Package updated successfully",
-      package: travelPackage,
-    };
+  return {
+    success: true,
+    statusCode: 200,
+    message: "Package updated successfully",
+    package: travelPackage,
   };
+};
 
 /**
  * Update Status
@@ -471,46 +417,34 @@ const updatePackageStatus =
 /**
  * Delete Package
  */
-const deletePackage =
-  async (id) => {
-    const travelPackage =
-      await TravelPackage.findById(
-        id
-      );
+const deletePackage = async (id) => {
+  const travelPackage = await TravelPackage.findById(id);
 
-    if (!travelPackage) {
-      return {
-        success: false,
-        statusCode: 404,
-        message:
-          "Package not found",
-      };
-    }
-
-    const bookingExists =
-      await Booking.exists({
-        packageId: id,
-      });
-
-    if (bookingExists) {
-      return {
-        success: false,
-        statusCode: 400,
-        message:
-          "This package is already used in bookings. You can only mark it as inactive.",
-      };
-    }
-
-    await travelPackage.deleteOne();
-
+  if (!travelPackage) {
     return {
-      success: true,
-      statusCode: 200,
-      message:
-        "Package deleted successfully",
+      success: false,
+      statusCode: 404,
+      message: "Package not found",
     };
-  };
+  }
 
+  if (travelPackage.status === "active") {
+    return {
+      success: false,
+      statusCode: 400,
+      message:
+        "Active package cannot be deleted. Please mark it as inactive first.",
+    };
+  }
+  
+  await travelPackage.deleteOne();
+
+  return {
+    success: true,
+    statusCode: 200,
+    message: "Package deleted successfully",
+  };
+};
 
 const getPackageById = async (id) => {
   const travelPackage =

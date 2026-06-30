@@ -46,9 +46,9 @@ const bookingSchema = new mongoose.Schema(
 
     drop: {
       type: String,
-      required: true,
       trim: true,
       maxlength: 200,
+      default: "",
     },
 
     vehicle: {
@@ -70,6 +70,16 @@ const bookingSchema = new mongoose.Schema(
         default: "",
       },
 
+      slug: {
+        type: String,
+        default: "",
+      },
+
+      vehicle: {
+        type: String,
+        default: "",
+      },
+
       price: {
         type: Number,
         default: null,
@@ -80,9 +90,14 @@ const bookingSchema = new mongoose.Schema(
         default: null,
       },
 
-      vehicle: {
+      duration: {
         type: String,
         default: "",
+      },
+
+      distance: {
+        type: Number,
+        default: null,
       },
     },
 

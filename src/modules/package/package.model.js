@@ -102,12 +102,33 @@ const packageSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-
     isFeatured: {
       type: Boolean,
       default: false,
       index: true,
     },
+
+    startingLocation: {
+      type: String,
+      default: "Varanasi",
+      trim: true,
+    },
+    destinationLocation: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    driverAllowance: {
+      type: String,
+      default: "Included",
+    },
+
+    extraCharges: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
 
     status: {
       type: String,

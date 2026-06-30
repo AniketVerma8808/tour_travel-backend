@@ -8,7 +8,7 @@ import { generateBookingNumber } from "./booking.helper.js";
 const createBooking = async (data) => {
   const phone = data.phone?.trim();
   const pickup = data.pickup?.trim();
-  const drop = data.drop?.trim();
+  const drop = data.drop?.trim() || "";
 
   const startDate = new Date(data.travelDate);
   startDate.setHours(0, 0, 0, 0);
@@ -41,9 +41,12 @@ const createBooking = async (data) => {
   let packageId = null;
   let packageSnapshot = {
     title: "",
+    slug: "",
+    vehicle: "",
     price: null,
     oldPrice: null,
-    vehicle: "",
+    duration: "",
+    distance: null,
   };
 
   if (data.packageId) {
@@ -68,9 +71,12 @@ const createBooking = async (data) => {
 
     packageSnapshot = {
       title: travelPackage.title,
+      slug: travelPackage.slug,
+      vehicle: travelPackage.vehicle,
       price: travelPackage.price,
       oldPrice: travelPackage.oldPrice,
-      vehicle: travelPackage.vehicle,
+      duration: travelPackage.duration,
+      distance: travelPackage.distance,
     };
   }
 
@@ -188,7 +194,7 @@ const getAllBookings = async ({
       Booking.find(query)
         .populate(
           "packageId",
-          "title price oldPrice vehicle category"
+          "title slug category vehicle price oldPrice duration distance startingLocation destinationLocation"
         )
         .sort({
           createdAt: -1,

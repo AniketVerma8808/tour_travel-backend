@@ -14,6 +14,7 @@ import {
   validatePackageUpdate,
 } from "./package.validation.js";
 import { protectAdmin } from "../../middleware/auth.middleware.js";
+import { uploadPackage } from "../../middleware/packageUpload.middleware.js";
 
 const router = express.Router();
 
@@ -30,10 +31,10 @@ router.get("/details/:id", protectAdmin, getPackageById);
 router.get("/:slug", getPackageBySlug);
 
 // Create Package
-router.post("/create", protectAdmin, validatePackage, createPackage);
+router.post("/create", protectAdmin, uploadPackage.single("image"), validatePackage, createPackage);
 
 // Update Package
-router.put("/:id", protectAdmin, validatePackageUpdate, updatePackage);
+router.put("/:id", protectAdmin, validatePackageUpdate, uploadPackage.single("image"), updatePackage);
 
 // Change Status
 router.patch("/:id/status", protectAdmin, updatePackageStatus);

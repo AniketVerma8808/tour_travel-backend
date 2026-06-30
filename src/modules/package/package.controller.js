@@ -4,6 +4,9 @@ import packageService from "./package.service.js";
  * Create Package
  */
 export const createPackage = async (req, res, next) => {
+    console.log("BODY =>", req.body);
+  console.log("FILE =>", req.file);
+
   try {
     const result = await packageService.createPackage(req.body);
 
