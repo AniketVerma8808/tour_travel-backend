@@ -1,11 +1,13 @@
 import TravelPackage from "./package.model.js";
-import Booking from "../booking/booking.model.js";
-import { generateSlug } from "./package.helper.js";
+import Booking from "../booking/booking.model.js";import {
+  generateSlug,
+  parseArray,
+} from "./package.helper.js";
 
 /**
  * Create Package
  */
-const createPackage = async (data,file) => {
+const createPackage = async (data, file) => {
   const slug = generateSlug(data.title);
 
   const existingPackage =
@@ -19,10 +21,10 @@ const createPackage = async (data,file) => {
         "Package with this title already exists",
     };
   }
-  
-const imageUrl = file
-  ? `${process.env.SERVER_URL}/uploads/package/${file.filename}`
-  : "";
+
+  const imageUrl = file
+    ? `${process.env.SERVER_URL}/uploads/package/${file.filename}`
+    : "";
 
   const travelPackage =
     await TravelPackage.create({
@@ -32,7 +34,7 @@ const imageUrl = file
 
       category: data.category,
 
-      image:imageUrl,
+      image: imageUrl,
 
       vehicle:
         data.vehicle?.trim() ||
@@ -74,21 +76,8 @@ const imageUrl = file
       shortDescription:
         data.shortDescription?.trim() ||
         "",
-
-      inclusions:
-        Array.isArray(
-          data.inclusions
-        )
-          ? data.inclusions
-          : [],
-
-      exclusions:
-        Array.isArray(
-          data.exclusions
-        )
-          ? data.exclusions
-          : [],
-
+      inclusions: parseArray(data.inclusions),
+      exclusions: parseArray(data.exclusions),
       displayOrder: Number(
         data.displayOrder ?? 0
       ),
@@ -231,7 +220,7 @@ const getPackageBySlug =
  * Update Package
  */
 const updatePackage = async (id, data) => {
-    console.log("ID:", id);
+  console.log("ID:", id);
   console.log("DATA:", data);
   const travelPackage = await TravelPackage.findById(id);
 
@@ -323,13 +312,11 @@ const updatePackage = async (id, data) => {
       data.shortDescription;
 
   // Package Details
-  if (data.inclusions !== undefined)
-    travelPackage.inclusions =
-      data.inclusions;
+if (data.inclusions !== undefined)
+  travelPackage.inclusions = parseArray(data.inclusions);
 
-  if (data.exclusions !== undefined)
-    travelPackage.exclusions =
-      data.exclusions;
+if (data.exclusions !== undefined)
+  travelPackage.exclusions = parseArray(data.exclusions);
 
   // Display Settings
   if (data.displayOrder !== undefined)
