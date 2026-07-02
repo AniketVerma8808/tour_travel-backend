@@ -4,11 +4,11 @@ import packageService from "./package.service.js";
  * Create Package
  */
 export const createPackage = async (req, res, next) => {
-    console.log("BODY =>", req.body);
+  console.log("BODY =>", req.body);
   console.log("FILE =>", req.file);
 
   try {
-    const result = await packageService.createPackage(req.body);
+    const result = await packageService.createPackage(req.body, req.file);
 
     return res.status(result.statusCode).json(result);
   } catch (error) {
@@ -72,8 +72,12 @@ export const getPackageBySlug = async (req, res, next) => {
 /**
  * Update Package
  */
+
 export const updatePackage = async (req, res, next) => {
   try {
+    console.log("req.body =", req.body);
+    console.log("req.params =", req.params);
+
     const result = await packageService.updatePackage(
       req.params.id,
       req.body
@@ -81,10 +85,10 @@ export const updatePackage = async (req, res, next) => {
 
     return res.status(result.statusCode).json(result);
   } catch (error) {
+    console.error(error);
     next(error);
   }
 };
-
 /**
  * Update Package Status
  */

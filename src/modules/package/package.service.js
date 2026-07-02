@@ -5,7 +5,7 @@ import { generateSlug } from "./package.helper.js";
 /**
  * Create Package
  */
-const createPackage = async (data) => {
+const createPackage = async (data,file) => {
   const slug = generateSlug(data.title);
 
   const existingPackage =
@@ -19,6 +19,10 @@ const createPackage = async (data) => {
         "Package with this title already exists",
     };
   }
+  
+const imageUrl = file
+  ? `${process.env.SERVER_URL}/uploads/package/${file.filename}`
+  : "";
 
   const travelPackage =
     await TravelPackage.create({
@@ -28,8 +32,7 @@ const createPackage = async (data) => {
 
       category: data.category,
 
-      image:
-        data.image?.trim() || "",
+      image:imageUrl,
 
       vehicle:
         data.vehicle?.trim() ||
@@ -228,6 +231,8 @@ const getPackageBySlug =
  * Update Package
  */
 const updatePackage = async (id, data) => {
+    console.log("ID:", id);
+  console.log("DATA:", data);
   const travelPackage = await TravelPackage.findById(id);
 
   if (!travelPackage) {
@@ -436,7 +441,7 @@ const deletePackage = async (id) => {
         "Active package cannot be deleted. Please mark it as inactive first.",
     };
   }
-  
+
   await travelPackage.deleteOne();
 
   return {

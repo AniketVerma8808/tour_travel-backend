@@ -34,7 +34,7 @@ router.get("/:slug", getPackageBySlug);
 router.post("/create", protectAdmin, uploadPackage.single("image"), validatePackage, createPackage);
 
 // Update Package
-router.put("/:id", protectAdmin, validatePackageUpdate, uploadPackage.single("image"), updatePackage);
+router.put("/:id", protectAdmin, uploadPackage.single("image"),validatePackageUpdate, updatePackage);
 
 // Change Status
 router.patch("/:id/status", protectAdmin, updatePackageStatus);
