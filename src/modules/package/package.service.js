@@ -1,5 +1,5 @@
 import TravelPackage from "./package.model.js";
-import Booking from "../booking/booking.model.js";import {
+import Booking from "../booking/booking.model.js"; import {
   generateSlug,
   parseArray,
 } from "./package.helper.js";
@@ -101,10 +101,86 @@ const createPackage = async (data, file) => {
 /**
  * Public Packages
  */
-const getActivePackages = async () => {
-  const packages = await TravelPackage.find({
+const getActivePackages = async ({
+  search = "",
+  category = "",
+  vehicle = "",
+  duration = "",
+}) => {
+  const query = {
     status: "active",
-  })
+  };
+
+  // Search
+  if (search?.trim()) {
+    query.$or = [
+      {
+        title: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        description: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        shortDescription: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        category: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        vehicle: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        duration: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        startingLocation: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        destinationLocation: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+    ];
+  }
+
+  // Category Filter
+  if (category) {
+    query.category = category;
+  }
+
+  // Vehicle Filter
+  if (vehicle) {
+    query.vehicle = vehicle;
+  }
+
+  // Duration Filter
+  if (duration) {
+    query.duration = duration;
+  }
+
+  const packages = await TravelPackage.find(query)
     .sort({
       displayOrder: 1,
       isFeatured: -1,
@@ -120,6 +196,45 @@ const getActivePackages = async () => {
   };
 };
 
+const getPackageFilters = async () => {
+  const packages = await TravelPackage.find({
+    status: "active",
+  }).select(
+    "category duration vehicle startingLocation destinationLocation"
+  );
+
+  const categories = [
+    ...new Set(packages.map(p => p.category).filter(Boolean)),
+  ];
+
+  const durations = [
+    ...new Set(packages.map(p => p.duration).filter(Boolean)),
+  ];
+
+  const vehicles = [
+    ...new Set(packages.map(p => p.vehicle).filter(Boolean)),
+  ];
+
+  const locations = [
+    ...new Set(
+      packages.flatMap(p => [
+        p.startingLocation,
+        p.destinationLocation,
+      ]).filter(Boolean)
+    ),
+  ];
+
+  return {
+    success: true,
+    statusCode: 200,
+    filterOptions: {
+      categories,
+      durations,
+      vehicles,
+      locations,
+    },
+  };
+};
 /**
  * Admin Packages
  */
@@ -312,11 +427,11 @@ const updatePackage = async (id, data) => {
       data.shortDescription;
 
   // Package Details
-if (data.inclusions !== undefined)
-  travelPackage.inclusions = parseArray(data.inclusions);
+  if (data.inclusions !== undefined)
+    travelPackage.inclusions = parseArray(data.inclusions);
 
-if (data.exclusions !== undefined)
-  travelPackage.exclusions = parseArray(data.exclusions);
+  if (data.exclusions !== undefined)
+    travelPackage.exclusions = parseArray(data.exclusions);
 
   // Display Settings
   if (data.displayOrder !== undefined)
@@ -467,4 +582,5 @@ export default {
   updatePackage,
   updatePackageStatus,
   deletePackage,
+  getPackageFilters,
 };

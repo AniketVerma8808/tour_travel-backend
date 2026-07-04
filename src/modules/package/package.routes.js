@@ -8,6 +8,7 @@ import {
   updatePackage,
   updatePackageStatus,
   deletePackage,
+  getPackageFilters,
 } from "./package.controller.js";
 import {
   validatePackage,
@@ -20,6 +21,8 @@ const router = express.Router();
 
 // Public Packages
 router.get("/", getActivePackages);
+
+router.get("/filters", getPackageFilters);
 
 // Admin Packages
 router.get("/all", protectAdmin, getAllPackages);

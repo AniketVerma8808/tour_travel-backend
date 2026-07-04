@@ -21,7 +21,13 @@ export const createPackage = async (req, res, next) => {
  */
 export const getActivePackages = async (req, res, next) => {
   try {
-    const result = await packageService.getActivePackages();
+    const { search = "", category = "", vehicle = "", duration = "", } = req.query;
+    const result = await packageService.getActivePackages({
+      search,
+      category,
+      vehicle,
+      duration,
+    });
 
     return res.status(result.statusCode).json(result);
   } catch (error) {
@@ -29,6 +35,22 @@ export const getActivePackages = async (req, res, next) => {
   }
 };
 
+export const getPackageFilters = async (
+    req,
+    res,
+    next
+) => {
+    try {
+        const result =
+            await packageService.getPackageFilters();
+
+        return res
+            .status(result.statusCode)
+            .json(result);
+    } catch (err) {
+        next(err);
+    }
+};
 /**
  * Get All Packages (Admin)
  */
