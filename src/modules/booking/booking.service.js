@@ -1,6 +1,9 @@
 import Booking from "./booking.model.js";
 import TravelPackage from "../package/package.model.js";
 import { generateBookingNumber } from "./booking.helper.js";
+import { sendAdminEmail } from "../../utils/sendEmail.js";
+import bookingEmailTemplate from "../../utils/emailTemplates/bookingEmail.js";
+import notificationService from "../notification/notification.service.js";
 
 /**
  * Create Booking
@@ -121,6 +124,24 @@ const createBooking = async (data) => {
       },
     ],
   });
+  
+  try {
+    const email = bookingEmailTemplate(booking);
+    await sendAdminEmail(email);
+  } catch (error) {
+    console.error("Booking email failed:", error);
+  }
+
+  try {
+    await notificationService.createNotification({
+      title: "New Booking",
+      message: `${booking.name} has submitted a new booking.`,
+      type: "booking",
+      referenceId: booking._id,
+    });
+  } catch (error) {
+    console.error("Notification creation failed:", error);
+  }
 
   return {
     success: true,

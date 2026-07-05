@@ -1,4 +1,6 @@
 import Review from "./review.model.js";
+import { sendAdminEmail } from "../../utils/sendEmail.js";
+import reviewEmailTemplate from "../../utils/emailTemplates/reviewEmail.js";
 
 const createReview = async (data) => {
   const existingReview =
@@ -8,7 +10,7 @@ const createReview = async (data) => {
       createdAt: {
         $gte: new Date(
           Date.now() -
-            24 * 60 * 60 * 1000
+          24 * 60 * 60 * 1000
         ),
       },
     });
@@ -22,12 +24,31 @@ const createReview = async (data) => {
     };
   }
 
-  await Review.create({
+  const review = await Review.create({
     name: data.name?.trim(),
     city: data.city?.trim(),
     rating: Number(data.rating),
     review: data.review?.trim(),
   });
+
+  try {
+    await sendAdminEmail(
+      reviewEmailTemplate(review)
+    );
+  } catch (error) {
+    console.error("Review email failed:", error);
+  }
+
+  try {
+    await notificationService.createNotification({
+      title: "New Review",
+      message: `${review.name} submitted a new review.`,
+      type: "review",
+      referenceId: review._id,
+    });
+  } catch (error) {
+    console.error("Review notification failed:", error);
+  }
 
   return {
     success: true,

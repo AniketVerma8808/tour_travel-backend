@@ -1,4 +1,6 @@
 import Inquiry from "./inquiry.model.js";
+import { sendAdminEmail } from "../../utils/sendEmail.js";
+import inquiryEmailTemplate from "../../utils/emailTemplates/inquiryEmail.js";
 
 const createInquiry = async (data) => {
   const phone = data.phone?.trim();
@@ -25,7 +27,26 @@ const createInquiry = async (data) => {
     email: data.email?.trim().toLowerCase() || null,
     message: data.message?.trim() || "",
   });
+  
+  try {
+    await sendAdminEmail(
+      inquiryEmailTemplate(inquiry)
+    );
+  } catch (error) {
+    console.error("Inquiry email failed:", error);
+  }
 
+  try {
+    await notificationService.createNotification({
+      title: "New Inquiry",
+      message: `${inquiry.name} submitted a new inquiry.`,
+      type: "inquiry",
+      referenceId: inquiry._id,
+    });
+  } catch (error) {
+    console.error("Inquiry notification failed:", error);
+  }
+  
   return {
     success: true,
     statusCode: 201,

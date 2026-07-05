@@ -2,6 +2,7 @@ import Booking from "../booking/booking.model.js";
 import Inquiry from "../inquiry/inquiry.model.js";
 import Review from "../review/review.model.js";
 import TravelPackage from "../package/package.model.js";
+import Notification from "../notification/notification.model.js";
 
 const getDashboard = async () => {
   const [
@@ -19,10 +20,15 @@ const getDashboard = async () => {
     totalPackages,
     activePackages,
 
+    unreadNotifications,
+
     recentBookings,
     recentInquiries,
     recentReviews,
+    recentNotifications,
   ] = await Promise.all([
+
+    // Booking Stats
     Booking.countDocuments(),
 
     Booking.countDocuments({
@@ -41,20 +47,29 @@ const getDashboard = async () => {
       status: "cancelled",
     }),
 
+    // Inquiry Stats
     Inquiry.countDocuments(),
 
+    // Review Stats
     Review.countDocuments(),
 
     Review.countDocuments({
       status: "approved",
     }),
 
+    // Package Stats
     TravelPackage.countDocuments(),
 
     TravelPackage.countDocuments({
       status: "active",
     }),
 
+    // Notification Stats
+    Notification.countDocuments({
+      isRead: false,
+    }),
+
+    // Recent Bookings
     Booking.find()
       .sort({
         createdAt: -1,
@@ -65,6 +80,7 @@ const getDashboard = async () => {
       )
       .lean(),
 
+    // Recent Inquiries
     Inquiry.find()
       .sort({
         createdAt: -1,
@@ -72,7 +88,16 @@ const getDashboard = async () => {
       .limit(10)
       .lean(),
 
+    // Recent Reviews
     Review.find()
+      .sort({
+        createdAt: -1,
+      })
+      .limit(10)
+      .lean(),
+
+    // Recent Notifications
+    Notification.find()
       .sort({
         createdAt: -1,
       })
@@ -98,11 +123,14 @@ const getDashboard = async () => {
 
       totalPackages,
       activePackages,
+
+      unreadNotifications,
     },
 
     recentBookings,
     recentInquiries,
     recentReviews,
+    recentNotifications,
   };
 };
 

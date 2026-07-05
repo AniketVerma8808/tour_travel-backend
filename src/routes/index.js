@@ -8,6 +8,7 @@ import packageRoutes from "../modules/package/package.routes.js";
 import dashboardRoutes from "../modules/dashboard/dashboard.routes.js";
 import settingRoutes from "../modules/setting/setting.routes.js";
 import bannerRoutes from "../modules/banner/banner.routes.js";
+import notificationRoutes from "../modules/notification/notification.route.js";
 
 const router = express.Router();
 
@@ -21,5 +22,6 @@ router.use("/packages", packageRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/settings", settingRoutes);
 router.use("/banners", bannerRoutes);
+router.use("/notifications", notificationRoutes);
 
 export default router;
