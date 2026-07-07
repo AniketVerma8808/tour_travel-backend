@@ -22,6 +22,6 @@ router.use("/packages", packageRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/settings", settingRoutes);
 router.use("/banners", bannerRoutes);
-router.use("/notifications", notificationRoutes);
+// router.use("/notifications", notificationRoutes);
 
 export default router;
